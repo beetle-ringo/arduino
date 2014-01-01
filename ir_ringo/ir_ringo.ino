@@ -1,10 +1,13 @@
-// Подключаем специальную библиотеку, предоставляющую функции
-// приёма и передачи ИК-команд. Сайт проекта:
-// https://github.com/shirriff/Arduino-IRremote
+// EN: We use special library to receive and decode commands from IR remote.
+// RU: Подключаем специальную библиотеку, предоставляющую функции
+//     приёма и передачи ИК-команд. Сайт проекта:
+//     https://github.com/shirriff/Arduino-IRremote
 #include "IRremote.h"
 
 #include <Servo.h>
 
+// EN: Сommand codes received from IR remote.
+// RU: Коды команд, принимаемых от ИК-пульта.
 const long COMMAND_FORWARD = 527175;
 const long COMMAND_BACKWARD = 920391;
 const long COMMAND_TURN_LEFT = 789319;
@@ -19,20 +22,36 @@ const long COMMAND_SLOW = 617287;
 const long COMMAND_FAST = 92999;
 const long COMMAND_VERY_FAST = 944967;
 
-// Аналоговый вход контроллера, к которму подключен ИК-приёмник:
+// EN: Analog pin where IR detector is pluged in.
+// RU: Аналоговый вход контроллера, к которму подключен ИК-приёмник.
 const int IR_PIN = A0;
+
+// EN: Servo pins.
+// RU: Цифровые выводы контролера, к которым подключены серводвигатели.
 const int LEFT_SERVO_PIN = 2;
 const int CENTRAL_SERVO_PIN = 4;
 const int RIGHT_SERVO_PIN = 7;
 
+// EN: Servo "zero" angle positions.
+// RU: Центральное ("нулевое") положение серводвигателей в градусах.
 const long LEFT_SERVO_ZERO_VALUE = 90;
 const long RIGHT_SERVO_ZERO_VALUE = 90;
 const long CENTRAL_SERVO_ZERO_VALUE = 90;
 
+// EN: Amplitude of left and right servos.
+// RU: Амплитула левого и правого серводвигателей.
 const long SIDE_SERVOS_FULL_AMPLITUDE = 30;
+// EN: Half amplitude of left and right servos. Is used when robot is turning
+//     left or right while moving forward or backward.
+// RU: Уменьшенная амплитула левого и правого серводвигателей. Используется
+//     при поворотах совмещённых с движением вперёд или назад.
 const long SIDE_SERVOS_HALF_AMPLITUDE = 15;
+// EN: Amplitude of central servo.
+// RU: Амплитула центрального серводвигателя.
 const long CENTRAL_SERVO_AMPLITUDE = 15;
 
+// EN: Periods for different speeds.
+// RU: Периоды колебаний для различных скоростей.
 const long STEP_PERIOD_VERY_SLOW = 2000;
 const long STEP_PERIOD_SLOW = 1500;
 const long STEP_PERIOD_FAST = 1000;
@@ -49,7 +68,8 @@ long amplitudeRightServo;
 boolean isAttached;
 boolean isStopped;
 
-// Создаём объект ИК-приёмник:
+// EN: IRrecv class performs the decoding.
+// RU: Создаём объект ИК-приёмник. Этот объект принимает и декодирует ИК-сигналы от пульта.
 IRrecv irrecv(IR_PIN);
 
 Servo LeftServo;
@@ -65,6 +85,10 @@ void attachServos() {
   }
 }
 
+// EN: In some positions servos can make noise and vibrate.
+//     To avoid this noise and vibration detach servos when robot is stopped.
+// RU: В некоторых положениях серводвигатели могут вибрировать и шуметь.
+//     Чтобы это избежать во время остановок робота, сервы надо отключать.
 void detachServos() {
   if (isAttached) {
     LeftServo.detach();
@@ -75,7 +99,8 @@ void detachServos() {
 }
 
 void setup() {
-  // Начинаем прослушивание ИК-сигналов:
+  // EN: Start the IR receiver.
+  // RU: Начинаем прослушивание ИК-сигналов.
   irrecv.enableIRIn();
  
   attachServos();
@@ -89,6 +114,14 @@ void setup() {
   stepPeriod = STEP_PERIOD_FAST;
 }
 
+// EN: Gets angle for servo.
+//     Param amplitude - amplitude of oscillating process,
+//     param phaseMillis - current duration of oscillating,
+//     param shiftAndle - phase of oscillating process.
+// RU: Получение угла для серводвигателя.
+//     Параметр amplitude - амплитуда колебаний,
+//     Параметр phaseMillis - текущая продолжительность колебаний,
+//     Параметр shiftAndle - фаза колебаний.
 int getAngle(long amplitude, long phaseMillis, float shiftAngle) {
   float alpha = 2 * PI * phaseMillis / stepPeriod + shiftAngle;
   float angle = amplitude * sin(alpha);
@@ -99,7 +132,9 @@ void loop() {
   long millisNow = millis();
   long millisPassed = millisNow - lastMillis;
   if (isStopped) {
-    // Ждём полсекунды, чтобы серводвигатели вышли в нулевое положение и отключаем их:
+    // EN: We should wait for half a second. After that we think that servos are in zero
+    //     position and we can detach them.
+    // RU: Ждём полсекунды, чтобы серводвигатели вышли в нулевое положение и отключаем их.
     if (millisPassed >= 500) {
       lastMillis = 0;
       detachServos();
@@ -113,12 +148,13 @@ void loop() {
     globalPhase = globalPhase % stepPeriod;
   }
   
-  // Описываем структуру results, в которую будут помещаться
-  // принятые и декодированные ИК-команды:
+  // EN: Declaration of the structure that is used for received and decoded IR commands.
+  // RU: Описываем структуру results, в которую будут помещаться
+  //     принятые и декодированные ИК-команды:
   decode_results results;
   
-  // Если ИК-команда принята и успешно декодирована, то выводим
-  // полученный код в последовательный порт контроллера:
+  // EN: We can handle IR command if it is received and decoded successfully.
+  // RU: Если команда успешно принята и декодирована, то мы можем её обрабатывать.
   if (irrecv.decode(&results)) {
     switch (results.value) {
       case COMMAND_FORWARD:
@@ -190,6 +226,8 @@ void loop() {
         stepPeriod = STEP_PERIOD_VERY_FAST;
         break;
     }
+    // EN: Once a code has been decoded, the resume() method must be called to resume receiving codes.
+    // RU: После декодирования кода для продолжения приёма должен вызаваться метод resume().
     irrecv.resume();
   }
   
