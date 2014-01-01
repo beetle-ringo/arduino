@@ -214,15 +214,21 @@ void loop() {
         amplitudeRightServo = SIDE_SERVOS_FULL_AMPLITUDE;
         break;
       case COMMAND_VERY_SLOW:
+        // EN: globalPhase correction to save servo positions when changing period.
+        // RU: Корректировка globalPhase чтобы сохранить положение серв при смене периода колебаний ног.
+        globalPhase = globalPhase * STEP_PERIOD_VERY_SLOW / stepPeriod;
         stepPeriod = STEP_PERIOD_VERY_SLOW;
         break;
       case COMMAND_SLOW:
+        globalPhase = globalPhase * STEP_PERIOD_SLOW / stepPeriod;
         stepPeriod = STEP_PERIOD_SLOW;
         break;
       case COMMAND_FAST:
+        globalPhase = globalPhase * STEP_PERIOD_FAST / stepPeriod;
         stepPeriod = STEP_PERIOD_FAST;
         break;
       case COMMAND_VERY_FAST:
+        globalPhase = globalPhase * STEP_PERIOD_VERY_FAST / stepPeriod;
         stepPeriod = STEP_PERIOD_VERY_FAST;
         break;
     }
