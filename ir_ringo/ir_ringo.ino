@@ -183,8 +183,10 @@ void loop() {
       amplitudeLeftServo = SIDE_SERVOS_FULL_AMPLITUDE;
       amplitudeRightServo = SIDE_SERVOS_FULL_AMPLITUDE;
       if (hasCode(IR_COMMAND_BACKWARD_LEFT_CODES, results.value)) {
+        amplitudeRightServo = SIDE_SERVOS_HALF_AMPLITUDE;
+      } else if (hasCode(IR_COMMAND_BACKWARD_RIGHT_CODES, results.value)) {
         amplitudeLeftServo = SIDE_SERVOS_HALF_AMPLITUDE;
-      } else if (hasCode(IR_COMMAND_BACKWARD_RIGHT_CODES, results.value)) amplitudeRightServo = SIDE_SERVOS_HALF_AMPLITUDE;
+      }
     } else if (hasCode(IR_COMMAND_TURN_LEFT_CODES, results.value)) {
       attachServos();
       isStopped = false;
