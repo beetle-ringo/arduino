@@ -1,7 +1,7 @@
 Beetle Ringo
 ============
 
-Simple DIY beetle robot named Ringo.
+Simple DIY robot named Beetle Ringo. Soon I'll make an instruction on Instructables.com.
 
 Take a look at the video:
 
